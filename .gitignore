@@ -1,11 +1,14 @@
 
 .cake
 
+.lobos_stash.clj
+src/lobos/migrations.clj
+src/lobos/config.clj
+
 classes
 lib
 wiki
 www
-lobos/migrations
 
 playground.clj
 pom.xml
