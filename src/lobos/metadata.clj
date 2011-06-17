@@ -141,8 +141,3 @@
   "Returns metadata maps for each columns of the specified table."
   [sname tname]
   (meta-call .getColumns sname (name tname) nil))
-
-(defn exists-table?
-  "Returns true if a particular table exists in a particular schema."
-  [sname tname]
-  (not-empty (filter #(= (keyword tname) %) (tables sname))))

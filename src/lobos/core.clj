@@ -22,8 +22,7 @@
   (:require (lobos [compiler :as compiler]
                    [connectivity :as conn]
                    [migration :as mig]
-                   [schema :as schema]
-                   [metadata :as metadata]))
+                   [schema :as schema]))
   (:use (clojure.contrib [def :only [name-with-attributes]])
         (clojure [pprint :only [pprint]])
         lobos.internal
@@ -167,8 +166,7 @@
        (defn ~name [& params#]
          (let [[~'db-spec ~'sname ~params*]
                (optional-cnx-and-sname params#)]
-           (if-not (metadata/exists-table? nil mig/*migrations-table*)
-             (mig/create-migrations-table ~'db-spec ~'sname))
+           (mig/create-migrations-table ~'db-spec ~'sname)
            (do ~@body)))
        (.setMeta #'~name
                  (merge (.meta #'~name)
