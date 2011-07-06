@@ -65,17 +65,31 @@
       %)
    form))
 
-(defn complement [action]
-  (cond 
-    (= (first action) 'create)
-    (apply list 'drop (rest action))
-    (= (first action) 'alter)
-    (let [[head & [[subaction & args]]]
-          (split-with #(not (keyword? %)) action)]
-      (case subaction
-        :add (concat head [:drop] args)
-        :rename (concat head [:rename] (reverse-rename args))
-        nil))))
+(defmulti complement
+  "Returns the complementary action to be use in the down part of a
+  migration or nil."
+  first)
+
+(defmethod complement
+  'create
+  [action]
+  (if (= 'schema (-> action reverse first first))
+    (concat ['drop] (rest action) [:cascade])
+    (apply list 'drop (rest action))))
+
+(defmethod complement
+  'alter
+  [action]
+  (let [[element subaction cnx-or-schema] (reverse (rest action))]
+    (filter
+     identity
+     (case subaction
+           :add (list 'alter cnx-or-schema :drop element)
+           :rename (list 'alter cnx-or-schema :rename
+                         (reverse-rename element))
+           nil))))
+
+(defmethod complement :default [_] nil)
 
 ;; -----------------------------------------------------------------------------
 
