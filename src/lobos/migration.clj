@@ -38,7 +38,9 @@
 (def *config-namespace* 'lobos.config)
 
 (def *migrations-table* :schema_version)
+;(def *migrations-table* :lobos_migrations)
 
+(def *name* :name)
 (def *version* :version)
 (def *description* :description)
 (def *type* :type)
@@ -51,7 +53,7 @@
 (def *current_version* :current_version)
 (def *index_curent_version* :schema_version_index_current_version)
 (def *schema_version_column_vec*
-  [*version* *description* *type* *script* *checksum* *installed_by* *installed_on* *execution_time* *state* *current_version*])
+  [*name* *version* *description* *type* *script* *checksum* *installed_by* *installed_on* *execution_time* *state* *current_version*])
 
 ;; -----------------------------------------------------------------------------
 
@@ -190,17 +192,34 @@
                 :elements
                 *migrations-table*)
     (let [action (schema/table *migrations-table*
-                               (schema/varchar :name 255))
+                               (schema/varchar *name* 255)
+                               (schema/varchar *version* 255 :not-null :primary-key)
+                               (schema/varchar *description* 100)
+                               (schema/varchar *type* 10 :not-null)
+                               (schema/varchar *script* 200 :not-null :unique)
+                               (schema/integer *checksum*)
+                               (schema/varchar *installed_by* 30 :not-null)
+                               (schema/timestamp *installed_on* (schema/default (now)))
+                               (schema/integer *execution_time*)
+                               (schema/varchar *state* 15 :not-null)
+                               (schema/boolean *current_version* :not-null)
+                               (schema/index *index_curent_version* [*current_version*])                               )
           create-stmt (schema/build-create-statement action db-spec)]
       (execute create-stmt db-spec))))
 
 (defn insert-migrations
   [db-spec sname & names]
-  (when-not (empty? names)
-    (sql/with-connection db-spec
-      (sql/insert-rows
-       (compiler/as-identifier db-spec *migrations-table* sname)
-       (map str names)))))
+  (let [installed-by (:user db-spec)
+        installed-on (Timestamp. (.getTime (Date.)))
+        values-vec [*name* *version* "derive from name" "CLJ" nil 0 installed-by installed-on 0 "SUCCESS" true]]
+    (when-not (empty? names)
+      (sql/with-connection db-spec
+        (apply sql/insert-values
+               *migrations-table*
+               *schema_version_column_vec*
+               (map #(assoc values-vec 0 % 1 %  4 (str % ".clj")) names))))))
+
+  ;; [*name* *version* *description* *type* *script* *checksum* *installed_by* *installed_on* *execution_time* *state* *current_version*]
 
 (defn delete-migration
   [db-spec sname & names]
