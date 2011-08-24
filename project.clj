@@ -3,7 +3,13 @@
   "A library to create and manipulate SQL database schemas."
   :dependencies [[org.clojure/clojure "1.2.0"]
                  [org.clojure/clojure-contrib "1.2.0"]
-                 [postgresql "9.0-801.jdbc4"]]
+                 [postgresql "9.0-801.jdbc4"]
+                 [com.googlecode.flyway/flyway-core "1.4.2"]
+                 [org.antlr/stringtemplate "3.2.1"]
+                 [log4j "1.2.16" :exclusions [javax.mail/mail
+                                              javax.jms/jms
+                                              com.sun.jdmk/jmxtools
+                                              com.sun.jmx/jmxri]]]
   :dev-dependencies [[swank-clojure "1.4.0-SNAPSHOT"]
                      [clojure-source "1.2.0"]
                      [lein-clojars "0.6.0"]
@@ -13,4 +19,5 @@
                      [clj-help "0.2.0"]
                      [com.h2database/h2 "1.3.154"]]
   :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
+  :flyway {:driver "org.postgresql.Driver" :url "jdbc:postgresql:flyway" :username "postgres" :password ""}
   :jar-exclusions [#"www.clj"])
